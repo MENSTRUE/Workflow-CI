@@ -7,8 +7,8 @@ mlflow.set_tracking_uri("https://dagshub.com/MENSTRUE/Eksperimen_SML_wafa_bila_s
 
 # PATH DATA: Harus relatif terhadap lokasi file MLProject
 # Karena running di GitHub Actions, path-nya adalah:
-X_path = 'preprocessing/nearest_earth_object_preprocessing/X_train.csv'
-y_path = 'preprocessing/nearest_earth_object_preprocessing/y_train.csv'
+X_path = 'MLProject/preprocessing/nearest_earth_object_preprocessing/X_train.csv'
+y_path = 'MLProject/preprocessing/nearest_earth_object_preprocessing/y_train.csv'
 
 X_train = pd.read_csv(X_path)
 y_train = pd.read_csv(y_path)

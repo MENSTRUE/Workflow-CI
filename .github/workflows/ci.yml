@@ -20,15 +20,14 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install mlflow dagshub pandas scikit-learn matplotlib seaborn
-          pip install -r requirements.txt
+            pip install mlflow dagshub pandas scikit-learn matplotlib seaborn
+            pip install -r requirements.txt
 
       - name: Run MLflow Project
         env:
-          MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
-          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
-        # Menjalankan script langsung dari foldernya
-        run: python MLProject/modelling.py 
+            MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+            MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+        run: python MLProject/modelling.py
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
