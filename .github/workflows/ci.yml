@@ -1,4 +1,4 @@
-name: Workflow CI MLflow()
+name: Workflow CI MLflow
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
-        run: mlflow run Workflow-CI/MLProject/ --env-manager=local
+        run: mlflow run ./MLProject --env-manager=local
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
