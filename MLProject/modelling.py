@@ -1,23 +1,80 @@
+from pathlib import Path
+
 import pandas as pd
 import mlflow
+import mlflow.sklearn
+
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.model_selection import train_test_split
 
-# Setup tracking ke DagsHub (Username & Password diambil dari ENV GitHub Actions)
-mlflow.set_tracking_uri("https://dagshub.com/MENSTRUE/Eksperimen_SML_wafa_bila_syaefurokhman.mlflow")
 
-# PATH DATA: Harus relatif terhadap lokasi file MLProject
-# Karena running di GitHub Actions, path-nya adalah:
-X_path = 'MLProject/preprocessing/nearest_earth_object_preprocessing/X_train.csv'
-y_path = 'MLProject/preprocessing/nearest_earth_object_preprocessing/y_train.csv'
+BASE_DIR = Path(__file__).resolve().parent
+REPO_DIR = BASE_DIR.parent
+DATA_DIR = BASE_DIR / "preprocessing" / "nearest_earth_object_preprocessing"
 
-X_train = pd.read_csv(X_path)
-y_train = pd.read_csv(y_path)
+X_train_path = DATA_DIR / "X_train.csv"
+y_train_path = DATA_DIR / "y_train.csv"
+X_test_path = DATA_DIR / "X_test.csv"
+y_test_path = DATA_DIR / "y_test.csv"
 
-# Aktifkan autolog agar tercatat otomatis ke Run yang dibuat oleh Workflow CI
-mlflow.sklearn.autolog()
 
-# LANGSUNG TRAINING (Tanpa start_run manual)
-model = RandomForestClassifier(random_state=42)
-model.fit(X_train, y_train.values.ravel())
+mlflow.set_tracking_uri(
+    "https://dagshub.com/MENSTRUE/Eksperimen_SML_wafa_bila_syaefurokhman.mlflow"
+)
+mlflow.set_experiment("NASA_Asteroid_Workflow_CI")
 
-print("Modelling CI Selesai!")
+
+X_train = pd.read_csv(X_train_path)
+y_train = pd.read_csv(y_train_path).values.ravel()
+
+if X_test_path.exists() and y_test_path.exists():
+    X_test = pd.read_csv(X_test_path)
+    y_test = pd.read_csv(y_test_path).values.ravel()
+else:
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_train,
+        y_train,
+        test_size=0.2,
+        random_state=42,
+        stratify=y_train
+    )
+
+
+params = {
+    "n_estimators": 100,
+    "max_depth": 10,
+    "random_state": 42,
+}
+
+with mlflow.start_run() as run:
+    model = RandomForestClassifier(**params)
+    model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average="weighted", zero_division=0)
+    recall = recall_score(y_test, y_pred, average="weighted", zero_division=0)
+    f1 = f1_score(y_test, y_pred, average="weighted", zero_division=0)
+
+    mlflow.log_params(params)
+    mlflow.log_metric("accuracy", accuracy)
+    mlflow.log_metric("precision", precision)
+    mlflow.log_metric("recall", recall)
+    mlflow.log_metric("f1_score", f1)
+
+    mlflow.sklearn.log_model(
+        sk_model=model,
+        artifact_path="model",
+        input_example=X_test.head(3)
+    )
+
+    run_id = run.info.run_id
+    run_id_file = REPO_DIR / "run_id.txt"
+    run_id_file.write_text(run_id)
+
+    print("Modelling CI Selesai!")
+    print(f"Run ID: {run_id}")
+    print(f"Accuracy: {accuracy:.4f}")
+    print(f"F1 Score: {f1:.4f}")
