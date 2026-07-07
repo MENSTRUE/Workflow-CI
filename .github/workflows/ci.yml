@@ -60,7 +60,8 @@ jobs:
           RUN_ID=$(cat run_id.txt)
           mlflow models build-docker \
             -m "runs:/$RUN_ID/model" \
-            -n "${{ secrets.DOCKERHUB_USERNAME }}/nasa-model:latest"
+            -n "${{ secrets.DOCKERHUB_USERNAME }}/nasa-model:latest" \
+            --env-manager local
 
       - name: Push Docker Image to Docker Hub
         run: |
