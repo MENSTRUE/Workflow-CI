@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -24,6 +25,13 @@ mlflow.set_tracking_uri(
 )
 mlflow.set_experiment("NASA_Asteroid_Workflow_CI")
 
+# Penting untuk GitHub Actions saat pakai `mlflow run`.
+# `mlflow run` otomatis membuat MLFLOW_RUN_ID lokal.
+# Kalau tracking URI diarahkan ke DagsHub, run lokal itu tidak ditemukan di DagsHub.
+# Jadi env run lama harus dibersihkan sebelum start_run baru.
+os.environ.pop("MLFLOW_RUN_ID", None)
+os.environ.pop("MLFLOW_EXPERIMENT_ID", None)
+
 
 X_train = pd.read_csv(X_train_path)
 y_train = pd.read_csv(y_train_path).values.ravel()
@@ -47,7 +55,7 @@ params = {
     "random_state": 42,
 }
 
-with mlflow.start_run() as run:
+with mlflow.start_run(run_name="workflow_ci_random_forest") as run:
     model = RandomForestClassifier(**params)
     model.fit(X_train, y_train)
 
