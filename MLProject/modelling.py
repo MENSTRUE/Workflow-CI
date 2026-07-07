@@ -83,10 +83,78 @@ with mlflow.start_run(run_name="workflow_ci_random_forest") as run:
     mlflow.log_metric("recall", recall)
     mlflow.log_metric("f1_score", f1)
 
+    conda_env = {
+        "name": "nasa_model_env",
+        "channels": ["conda-forge"],
+        "dependencies": [
+            "python=3.10",
+            "pip",
+            {
+                "pip": [
+                    "mlflow==2.19.0",
+                    "cloudpickle",
+                    "pandas",
+                    "numpy",
+                    "scikit-learn",
+                ]
+            },
+        ],
+    }
+
     mlflow.sklearn.log_model(
         sk_model=model,
         artifact_path="model",
-        input_example=X_test.head(3)
+        input_example=X_test.head(3),
+        conda_env=conda_env,
+    )
+
+    run_id = run.info.run_id
+    run_id_file = REPO_DIR / "run_id.txt"
+    run_id_file.write_text(run_id)
+
+    print("Modelling CI Selesai!")
+    print(f"Run ID: {run_id}")
+    print(f"Accuracy: {accuracy:.4f}")
+    print(f"F1 Score: {f1:.4f}")
+    model = RandomForestClassifier(**params)
+    model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average="weighted", zero_division=0)
+    recall = recall_score(y_test, y_pred, average="weighted", zero_division=0)
+    f1 = f1_score(y_test, y_pred, average="weighted", zero_division=0)
+
+    mlflow.log_params(params)
+    mlflow.log_metric("accuracy", accuracy)
+    mlflow.log_metric("precision", precision)
+    mlflow.log_metric("recall", recall)
+    mlflow.log_metric("f1_score", f1)
+
+    conda_env = {
+        "name": "nasa_model_env",
+        "channels": ["conda-forge"],
+        "dependencies": [
+            "python=3.10",
+            "pip",
+            {
+                "pip": [
+                    "mlflow==2.19.0",
+                    "cloudpickle",
+                    "pandas",
+                    "numpy",
+                    "scikit-learn",
+                ]
+            },
+        ],
+    }
+
+    mlflow.sklearn.log_model(
+        sk_model=model,
+        artifact_path="model",
+        input_example=X_test.head(3),
+        conda_env=conda_env,
     )
 
     run_id = run.info.run_id
