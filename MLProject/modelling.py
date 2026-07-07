@@ -39,6 +39,17 @@ y_train = pd.read_csv(y_train_path).values.ravel()
 if X_test_path.exists() and y_test_path.exists():
     X_test = pd.read_csv(X_test_path)
     y_test = pd.read_csv(y_test_path).values.ravel()
+
+    # Pastikan nama kolom X_test sama dengan X_train.
+    # Beberapa file preprocessing lama menyimpan X_test dengan kolom 0,1,2,3,4.
+    if list(X_test.columns) != list(X_train.columns):
+        if X_test.shape[1] == X_train.shape[1]:
+            X_test.columns = X_train.columns
+        else:
+            raise ValueError(
+                f"Jumlah fitur X_test ({X_test.shape[1]}) tidak sama "
+                f"dengan X_train ({X_train.shape[1]})."
+            )
 else:
     X_train, X_test, y_train, y_test = train_test_split(
         X_train,
